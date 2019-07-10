@@ -1,1 +1,151 @@
 Today is mayday
+product-list.component.html
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+
+<body class="container">
+    <h1 align="center">Product List View</h1>
+    <h3 class="bg-info text-white">Product List</h3>
+    <div>
+        <span><b>Filter by: </b></span>
+        <span><input [(ngModel)]='productName' type="text"></span>
+    </div><br>
+    <h5>{{someMessage}}</h5>
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr class="header">
+                <td><button id="buton" (click)="showImage()">{{buttonName}}</button></td>
+                <td>Product</td>
+                <td>Code</td>
+                <td>Available</td>
+                <td>Price</td>
+                <td>5 Star Rating</td>
+            </tr>
+        </thead>
+        <tbody  *ngIf="product">
+            <tr *ngFor="let item of product | productFilter:productName">
+                <td><img src={{item.imageUrl}} style.visibility={{displayImageText}}></td>
+                <td><a href="#">{{item.productName}}</a></td>
+                <td>{{item.productCode}}</td>
+                <td>{{item.releaseDate}}</td>
+                <td>${{item.price}}</td>
+                <td>
+                    <app-star [starRating]='item.starRating' (RatingClicked)="onRatingClicked($event)"></app-star>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+
+
+//component.ts
+import { Component, OnInit } from '@angular/core';
+import { IproductInterface } from '../iproduct';
+import { ProductServiceService } from '../product-service.service';
+@Component({
+  selector: 'app-product-list',
+  templateUrl: './product-list.component.html',
+  styleUrls: ['./product-list.component.css']
+})
+export class ProductListComponent implements OnInit {
+  // private product-service:ProductServiceService
+  constructor(private productService:ProductServiceService) { }
+  products :IproductInterface[];
+  productFilter: any;
+  ngOnInit():void {
+    // this.product=this.productService.getProducts();
+    this.productService.getProducts().subscribe(products=>{
+      this.products=products;
+      this.productFilter = this.products;
+      console.log(products);
+    }
+    );
+  }
+  public show:boolean = false;
+  public buttonName:any = 'Hide Image';
+  displayImageText = "visible";
+  showImage(){
+  this.show = !this.show;
+  
+  // CHANGE THE NAME OF THE BUTTON.
+  if(this.show) 
+  {this.buttonName = "Show Image";
+  this.displayImageText = "hidden";}
+  else
+  {this.buttonName = "Hide Image";
+  this.displayImageText = "visible";
+  }
+  
+  }
+  someMessage:string;
+  onRatingClicked(message){
+      this.someMessage=message;
+  }
+}
+
+
+
+service.ts
+
+import { Injectable } from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { IproductInterface } from './iproduct';
+@Injectable({
+  providedIn: 'root'
+})
+export class ProductServiceService {
+
+  constructor(private http:HttpClient) { }
+  private productUrl='./assets/products.json';
+  getProducts():
+    Observable<IproductInterface[]>{
+    return this.http.get<IproductInterface[]>(this.productUrl);
+   
+  }
+}
+
+
+app.module.js
+
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { WelcomeComponent } from './welcome/welcome.component';
+import { HeroListComponent } from './hero-list/hero-list.component';
+import { ProductListComponent } from './product-list/product-list.component';
+import { ProductDetailsComponent } from './product-details/product-details.component';
+import { StarComponent } from './star/star.component';
+import { ProductFilterPipe } from './product-filter.pipe';
+import {FormsModule} from '@angular/forms'
+import {HttpClientModule} from '@angular/common/http';
+@NgModule({
+  declarations: [
+    AppComponent,
+    WelcomeComponent,
+    HeroListComponent,
+    ProductListComponent,
+    ProductDetailsComponent,
+    StarComponent,
+    ProductFilterPipe
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    FormsModule,
+    HttpClientModule
+  ],
+  providers: [],
+  bootstrap: [ProductListComponent]
+})
+export class AppModule { }
